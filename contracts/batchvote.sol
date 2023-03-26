@@ -6,8 +6,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
-// dCult contract interface used at the time of delegaion.
-interface IDCult {
+// dBashar contract interface used at the time of delegaion.
+interface IDBashar {
     function delegateBySig(
         address delegatee,
         uint256 nonce,
@@ -38,8 +38,8 @@ contract BatchVote is
 {
     // Governance contract address
     address public governance;
-    // dCult contract address
-    address public dCult;
+    // dBashar contract address
+    address public dBashar;
 
     // Structure used for batch delegate
     struct DelegateSignature {
@@ -61,33 +61,33 @@ contract BatchVote is
     }
 
     // Update contract addresses Event
-    event UpdatedDcultAddress(address indexed _dCult);
+    event UpdatedDbasharAddress(address indexed _dBashar);
     event UpdatedGovernanceAddress(address indexed _governance);
 
-    function initialize(address _governance, address _dCult)
+    function initialize(address _governance, address _dBashar)
         public
         initializer
     {
         __Ownable_init();
         __UUPSUpgradeable_init();
         __Pausable_init();
-        require(_dCult != address(0), "updatedCultAddress: Zero address");
+        require(_dBashar != address(0), "updatedBasharAddress: Zero address");
         require(
             _governance != address(0),
             "updatedGovernanceAddress: Zero address"
         );
         governance = _governance;
-        dCult = _dCult;
+        dBashar = _dBashar;
     }
 
     /**
-     * @notice Update dCult contract address.
-     * @dev Owner can update the dCult contract address.
+     * @notice Update dBashar contract address.
+     * @dev Owner can update the dBashar contract address.
      */
-    function updatedDcultAddress(address _dCult) external onlyOwner {
-        require(_dCult != address(0), "updatedCultAddress: Zero address");
-        dCult = _dCult;
-        emit UpdatedDcultAddress(_dCult);
+    function updatedDbasharAddress(address _dBashar) external onlyOwner {
+        require(_dBashar != address(0), "updatedBasharAddress: Zero address");
+        dBashar = _dBashar;
+        emit UpdatedDbasharAddress(_dBashar);
     }
 
     /**
@@ -129,7 +129,7 @@ contract BatchVote is
     {
         for (uint256 i = 0; i < sigs.length; i++) {
             DelegateSignature memory sig = sigs[i];
-            IDCult(dCult).delegateBySig(
+            IDBashar(dBashar).delegateBySig(
                 sig.delegatee,
                 sig.nonce,
                 sig.expiry,

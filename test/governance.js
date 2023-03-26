@@ -21,9 +21,9 @@ let ownerAddress;
 let userAddress1;
 let userAddress2;
 const GovernorBravoDelegate = artifacts.require("GovernorBravoDelegate");
-const CULTToken = artifacts.require("Cult");
+const BASHARToken = artifacts.require("Bashar");
 const Timelock = artifacts.require("Timelock");
-const dCultToken = artifacts.require("Dcult");
+const dBasharToken = artifacts.require("Dbashar");
 
 describe("GovernorBravo_Propose", function () {
   let trivialProposal, targets, values, signatures, callDatas, delay;
@@ -35,8 +35,8 @@ describe("GovernorBravo_Propose", function () {
     [ownerAddress, userAddress1, userAddress2] = accounts;
     delay = new BN(2 * 24 * 60 * 60 * 2);
 
-    this.CULT = await CULTToken.new({ from: ownerAddress, gas: 8000000 });
-    this.CULT.initialize(ownerAddress, "6666666666666666666666666666666", {
+    this.BASHAR = await BASHARToken.new({ from: ownerAddress, gas: 8000000 });
+    this.BASHAR.initialize(ownerAddress, "6666666666666666666666666666666", {
       from: ownerAddress,
       gas: 8000000,
     });
@@ -44,12 +44,12 @@ describe("GovernorBravo_Propose", function () {
       from: ownerAddress,
       gas: 8000000,
     });
-    this.dCultToken = await dCultToken.new({
+    this.dBasharToken = await dBasharToken.new({
       from: ownerAddress,
       gas: 8000000,
     });
-    await this.dCultToken.initialize(
-      this.CULT.address,
+    await this.dBasharToken.initialize(
+      this.BASHAR.address,
       ownerAddress,
       startBlock,
       1,
@@ -58,41 +58,41 @@ describe("GovernorBravo_Propose", function () {
         gas: 8000000,
       }
     );
-    await this.CULT.setWhitelistAddress(ownerAddress, true, {
+    await this.BASHAR.setWhitelistAddress(ownerAddress, true, {
       from: ownerAddress,
     });
-    await this.CULT.setWhitelistAddress(userAddress1, true, {
+    await this.BASHAR.setWhitelistAddress(userAddress1, true, {
       from: ownerAddress,
     });
-    await this.CULT.setWhitelistAddress(userAddress2, true, {
+    await this.BASHAR.setWhitelistAddress(userAddress2, true, {
       from: ownerAddress,
     });
-    await this.dCultToken.add(100, this.CULT.address, true, {
+    await this.dBasharToken.add(100, this.BASHAR.address, true, {
       from: ownerAddress,
       gas: 8000000,
     });
 
-    await this.CULT.approve(this.dCultToken.address, 10000, {
+    await this.BASHAR.approve(this.dBasharToken.address, 10000, {
       from: ownerAddress,
       gas: 8000000,
     });
-    await this.CULT.transfer(userAddress1, 10000, {
+    await this.BASHAR.transfer(userAddress1, 10000, {
       from: ownerAddress,
       gas: 8000000,
     });
-    await this.CULT.approve(this.dCultToken.address, 10000, {
+    await this.BASHAR.approve(this.dBasharToken.address, 10000, {
       from: userAddress1,
       gas: 8000000,
     });
-    await this.dCultToken.deposit(0, 1000, {
+    await this.dBasharToken.deposit(0, 1000, {
       from: ownerAddress,
       gas: 8000000,
     });
-    await this.dCultToken.deposit(0, 900, {
+    await this.dBasharToken.deposit(0, 900, {
       from: userAddress1,
       gas: 8000000,
     });
-    await this.dCultToken.delegate(userAddress1, {
+    await this.dBasharToken.delegate(userAddress1, {
       from: userAddress1,
       gas: 8000000,
     });
@@ -102,26 +102,26 @@ describe("GovernorBravo_Propose", function () {
     });
     this.gov = await GovernorBravoDelegate.new(
       this.timelock.address,
-      this.CULT.address,
+      this.BASHAR.address,
       ownerAddress,
       { from: ownerAddress, gas: 8000000 }
     );
     await this.gov.initialize(
       this.timelock.address,
-      this.dCultToken.address,
+      this.dBasharToken.address,
       17280,
       1,
       "60000000000000000000000",
       userAddress2,
       { from: ownerAddress, gas: 8000000 }
     );
-    // await this.CULT.mint(ownerAddress, "1000000000000000000000000", {from: ownerAddress, gas: 8000000})
+    // await this.BASHAR.mint(ownerAddress, "1000000000000000000000000", {from: ownerAddress, gas: 8000000})
     await this.timelock.setPendingAdmin(this.gov.address, {
       from: ownerAddress,
       gas: 8000000,
     });
     await this.gov._AcceptTimelockAdmin({ from: ownerAddress, gas: 8000000 });
-    await this.CULT.delegate(userAddress1, { from: ownerAddress });
+    await this.BASHAR.delegate(userAddress1, { from: ownerAddress });
 
     targets = [ownerAddress];
     values = ["0"];

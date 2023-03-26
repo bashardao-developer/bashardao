@@ -41,8 +41,8 @@ function generateDelegateSignature(delegatee, nonce, expiry, signature) {
 describe("Batch contract", function () {
   let Token;
   let stakeToken;
-  let cultToken;
-  let dCultToken;
+  let basharToken;
+  let dBasharToken;
   let GovernorBravoDelegate;
   let governance;
   let TimelockContract;
@@ -59,8 +59,8 @@ describe("Batch contract", function () {
 
   beforeEach(async function () {
     // Get the ContractFactory and Signers here.
-    Token = await ethers.getContractFactory("Cult");
-    stakeToken = await ethers.getContractFactory("Dcult");
+    Token = await ethers.getContractFactory("Bashar");
+    stakeToken = await ethers.getContractFactory("Dbashar");
     GovernorBravoDelegate = await ethers.getContractFactory(
       "GovernorBravoDelegate"
     );
@@ -71,16 +71,16 @@ describe("Batch contract", function () {
 
     const startBlock = await time.latestBlock();
 
-    cultToken = await upgrades.deployProxy(Token, [owner.address, 100000]);
-    await cultToken.deployed();
-    await cultToken.setTreasuryAddress(owner.address);
-    await cultToken.setWhitelistAddress(addr1.address, true);
-    await cultToken.setWhitelistAddress(addr2.address, true);
-    await cultToken.setWhitelistAddress(addrs[0].address, true);
-    await cultToken.setTax(0);
-    await cultToken.transfer(addr1.address, 1000);
-    await cultToken.transfer(addr2.address, 1000);
-    await cultToken.transfer(addrs[0].address, 1000);
+    basharToken = await upgrades.deployProxy(Token, [owner.address, 100000]);
+    await basharToken.deployed();
+    await basharToken.setTreasuryAddress(owner.address);
+    await basharToken.setWhitelistAddress(addr1.address, true);
+    await basharToken.setWhitelistAddress(addr2.address, true);
+    await basharToken.setWhitelistAddress(addrs[0].address, true);
+    await basharToken.setTax(0);
+    await basharToken.transfer(addr1.address, 1000);
+    await basharToken.transfer(addr2.address, 1000);
+    await basharToken.transfer(addrs[0].address, 1000);
     await owner.sendTransaction({
       to: addr1.address,
       value: ethers.utils.parseEther("1"),
@@ -94,22 +94,22 @@ describe("Batch contract", function () {
       value: ethers.utils.parseEther("1"),
     });
 
-    dCultToken = await upgrades.deployProxy(stakeToken, [
-      cultToken.address,
+    dBasharToken = await upgrades.deployProxy(stakeToken, [
+      basharToken.address,
       owner.address,
       startBlock,
       1,
     ]);
 
-    await dCultToken.add(100, cultToken.address, true);
-    await cultToken.connect(addr1).approve(dCultToken.address, 1000);
-    await cultToken.connect(addr2).approve(dCultToken.address, 1000);
-    await cultToken.connect(addrs[0]).approve(dCultToken.address, 1000);
-    await cultToken.connect(owner).approve(dCultToken.address, 1000);
-    await dCultToken.connect(addr1).deposit(0, 1000);
-    await dCultToken.connect(addr2).deposit(0, 900);
-    await dCultToken.connect(addrs[0]).deposit(0, 800);
-    await dCultToken.connect(owner).deposit(0, 700);
+    await dBasharToken.add(100, basharToken.address, true);
+    await basharToken.connect(addr1).approve(dBasharToken.address, 1000);
+    await basharToken.connect(addr2).approve(dBasharToken.address, 1000);
+    await basharToken.connect(addrs[0]).approve(dBasharToken.address, 1000);
+    await basharToken.connect(owner).approve(dBasharToken.address, 1000);
+    await dBasharToken.connect(addr1).deposit(0, 1000);
+    await dBasharToken.connect(addr2).deposit(0, 900);
+    await dBasharToken.connect(addrs[0]).deposit(0, 800);
+    await dBasharToken.connect(owner).deposit(0, 700);
     timelock = await upgrades.deployProxy(TimelockContract, [
       owner.address,
       delay,
@@ -117,7 +117,7 @@ describe("Batch contract", function () {
     await timelock.deployed();
     governance = await upgrades.deployProxy(GovernorBravoDelegate, [
       timelock.address,
-      dCultToken.address,
+      dBasharToken.address,
       17280,
       1,
       "60000000000000000000000",
@@ -128,19 +128,19 @@ describe("Batch contract", function () {
     await governance._AcceptTimelockAdmin();
     batch = await upgrades.deployProxy(batchContract, [
       governance.address,
-      dCultToken.address,
+      dBasharToken.address,
     ]);
     await batch.deployed();
 
     chainId = addr1.provider._network.chainId;
     domain = {
-      name: "dCULT",
+      name: "dBASHAR",
       version,
       chainId,
-      verifyingContract: dCultToken.address,
+      verifyingContract: dBasharToken.address,
     };
     ballotDomain = {
-      name: "Cult Governor Bravo",
+      name: "Bashar Governor Bravo",
       chainId,
       verifyingContract: governance.address,
     };
@@ -151,7 +151,7 @@ describe("Batch contract", function () {
     const signature = await addr2._signTypedData(domain, Types, message);
 
     const { r, s, v } = ethers.utils.splitSignature(signature);
-    await dCultToken.delegateBySig(delegatee, nonce, expiry, v, r, s);
+    await dBasharToken.delegateBySig(delegatee, nonce, expiry, v, r, s);
   });
 
   describe("Check admin conditions", function () {
@@ -185,10 +185,10 @@ describe("Batch contract", function () {
 
     it("Only owner can update contract address the contract", async function () {
       await expect(
-        batch.connect(addr2).updatedDcultAddress(addr2.address)
+        batch.connect(addr2).updatedDbasharAddress(addr2.address)
       ).to.be.revertedWith("Ownable: caller is not the owner");
-      await batch.updatedDcultAddress(addr2.address);
-      expect(await batch.dCult()).to.be.equal(addr2.address);
+      await batch.updatedDbasharAddress(addr2.address);
+      expect(await batch.dBashar()).to.be.equal(addr2.address);
     });
 
     it("Only owner can update governance contract address the contract", async function () {
@@ -206,7 +206,7 @@ describe("Batch contract", function () {
       const latestBlock = parseInt(await time.latestBlock());
       await time.advanceBlock();
       expect(
-        await dCultToken.getPastVotes(addr2.address, latestBlock)
+        await dBasharToken.getPastVotes(addr2.address, latestBlock)
       ).to.be.bignumber.equal(900);
     });
 
@@ -224,7 +224,7 @@ describe("Batch contract", function () {
       const latestBlock = parseInt(await time.latestBlock());
       await time.advanceBlock();
       expect(
-        await dCultToken.getPastVotes(addrs[0].address, latestBlock)
+        await dBasharToken.getPastVotes(addrs[0].address, latestBlock)
       ).to.be.bignumber.equal(800);
     });
 
@@ -251,19 +251,19 @@ describe("Batch contract", function () {
       const latestBlock = parseInt(await time.latestBlock());
       await time.advanceBlock();
       expect(
-        await dCultToken.getPastVotes(addrs[0].address, latestBlock)
+        await dBasharToken.getPastVotes(addrs[0].address, latestBlock)
       ).to.be.bignumber.equal(1500);
     });
   });
 
   describe("Caste Vote by signature", function () {
     beforeEach(async function () {
-      const targets = [cultToken.address];
+      const targets = [basharToken.address];
       const values = ["0"];
       const signatures = ["balanceOf(address)"];
       const callDatas = [encodeParameters(["address"], [owner.address])];
-      await dCultToken.connect(owner).delegate(owner.address);
-      await dCultToken.connect(addr2).delegate(addr2.address);
+      await dBasharToken.connect(owner).delegate(owner.address);
+      await dBasharToken.connect(addr2).delegate(addr2.address);
       await governance
         .connect(addr1)
         .propose(targets, values, signatures, callDatas, "do nothing");

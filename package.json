@@ -1,7 +1,7 @@
 {
-  "name": "cultdao",
+  "name": "bashardao",
   "version": "1.0.0",
-  "description": "Cult.DAO",
+  "description": "Bashar.DAO",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -63,26 +63,26 @@ contract Treasury is
 {
     using SafeMathUpgradeable for uint256;
     address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;
-    address public cult;
+    address public bashar;
     address public dao;
     address public router;
     uint256 public totalETH;
 
     address[] private path;
     function initialize(        
-        address _cult,
+        address _bashar,
         address _router
         ) public initializer {
-        require(_cult != address(0),"initialize: Invalid address");
+        require(_bashar != address(0),"initialize: Invalid address");
         require(_router != address(0),"initialize: Invalid address");
-        cult = _cult;
+        bashar = _bashar;
         router = _router;
         OwnableUpgradeable.__Ownable_init();
         ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
         __Context_init_unchained();
         __Pausable_init_unchained();
         path.push(IUniswapV2Router(router).WETH());
-        path.push(cult);
+        path.push(bashar);
         totalETH = 1 ether;
     }
 
@@ -96,18 +96,18 @@ contract Treasury is
     }
 
     function validatePayout() external{
-        uint256 balance = IERC20Upgradeable(cult).balanceOf(address(this));
-        uint256[] memory getCultAmountOneETH = IUniswapV2Router(router).getAmountsOut(totalETH, path);
-        uint256 totalAmount = getCultAmountOneETH[1].mul(155).div(10);
+        uint256 balance = IERC20Upgradeable(bashar).balanceOf(address(this));
+        uint256[] memory getBasharAmountOneETH = IUniswapV2Router(router).getAmountsOut(totalETH, path);
+        uint256 totalAmount = getBasharAmountOneETH[1].mul(155).div(10);
         if(balance >= totalAmount && IGovernance(dao).nextInvesteeFund()<IGovernance(dao).nextInvestee()){
-            fundInvestee(totalAmount,getCultAmountOneETH[1].mul(25).div(10));
+            fundInvestee(totalAmount,getBasharAmountOneETH[1].mul(25).div(10));
         }
     }
 
     function fundInvestee(uint256 totalAmount,uint burnAmount) internal nonReentrant{
         address investee = IGovernance(dao)._fundInvestee();
-        IERC20Upgradeable(cult).transfer(DEAD_ADDRESS,burnAmount);
-        IERC20Upgradeable(cult).transfer(investee,totalAmount.sub(burnAmount));
+        IERC20Upgradeable(bashar).transfer(DEAD_ADDRESS,burnAmount);
+        IERC20Upgradeable(bashar).transfer(investee,totalAmount.sub(burnAmount));
     }
 
 }
